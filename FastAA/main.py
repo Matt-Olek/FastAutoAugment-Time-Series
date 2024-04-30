@@ -1,10 +1,10 @@
 # Implementation of hyperparameter selection and base commands for Fast AutoAugment
 
 from train import train_baseline
+from config import device
 
 if __name__ == "__main__":
-    dataset_name = 'Worms'
-    nb_classes = 5
+    dataset_name = 'SmallKitchenAppliances'
     
     # Hyperparameters - FastAA
     
@@ -15,13 +15,12 @@ if __name__ == "__main__":
     
     # Hyperparameters - Baseline and comparison
     
-    epochs = 500            # Number of epochs
-    batch_size = 64         # Batch size
+    epochs = 100            # Number of epochs
+    batch_size = 35         # Batch size
     comparison = True       # Compare FastAA with no augmentation
     
     print ('\n#################################################\n')
-    print ('Performing Fast AutoAugment on the {} dataset'.format(dataset_name))
-    print ('Number of classes: {}'.format(nb_classes))
+    print ('Performing Fast AutoAugment on the {} dataset'.format(dataset_name), 'computing on device {}'.format(device))
     print ('Using {}-fold bagging (K)'.format(K), 'to find the N={} best policies'.format(N), 'over T={} iterations'.format(T), 'with B={} samples per fold'.format(B))
     print ('\n#################################################\n')
     
@@ -29,7 +28,5 @@ if __name__ == "__main__":
         print ('Comparing FastAA results with no augmentation') # And random augmentation soon
         print ('\n#################################################\n')
         
-        train_baseline(dataset_name, nb_classes, epochs, batch_size)
-        
-    # Load the dataset
+        train_baseline(dataset_name, epochs, batch_size)
     

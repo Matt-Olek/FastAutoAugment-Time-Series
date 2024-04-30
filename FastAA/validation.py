@@ -1,26 +1,24 @@
-import utils 
 import torch
 from config import device
 from collections import OrderedDict
+from sklearn.metrics import accuracy_score,f1_score
 
 # ------------------------------ Validation ------------------------------ #
 
-def validate(val_loader, model, criterion):
-    losses = utils.AverageMeter()
-    scores = utils.AverageMeter()
+def validate(test_dataset, model, criterion):
+    
     model.eval()
-
+    X_test, y_test = test_dataset
+    X_test = X_test.to(device)
+    y_test = y_test.to(device)
+    y_test = y_test.reshape(y_test.shape[0], y_test.shape[2]).float()
+    
     with torch.no_grad():
-        for i, (input, target) in enumerate(val_loader):
-            input = input.to(device).float()
-            target = target.to(device).float()
-            output = model(input).float()
-            loss = criterion(output, target)
-            acc = torch.sum(torch.argmax(output, dim=1) == torch.argmax(target, dim=1))
-            losses.update(loss.item(), input.size(0))
-            scores.update(acc.item(), input.size(0))
-    log = OrderedDict([
-        ('loss', losses.avg),
-        ('acc', scores.avg),
-    ])
+        y_pred = model(X_test)
+        y_pred.reshape(y_test.shape).float()
+        loss = criterion(y_pred, y_test)
+        acc = accuracy_score(torch.argmax(y_test, dim=1).cpu().numpy(), torch.argmax(y_pred, dim=1).cpu().numpy())
+        f1 = f1_score(torch.argmax(y_test, dim=1).cpu().numpy(), torch.argmax(y_pred, dim=1).cpu().numpy(), average='macro')
+        
+    log = OrderedDict({'loss': loss.item(), 'acc': acc, 'f1': f1})
     return log

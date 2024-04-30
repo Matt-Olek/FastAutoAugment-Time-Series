@@ -56,13 +56,9 @@ def getDataLoader(dataset_name, batch_size):
     y_test = torch.nn.functional.one_hot(y_test, num_classes=nb_classes)
     
     train_dataset =[]
-    test_dataset = []
     for i in range(len(X_train)):
         train_dataset.append((X_train[i], y_train[i].squeeze(0)))
-    for i in range(len(X_test)):
-        test_dataset.append((X_test[i], y_test[i].squeeze(0)))
     
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
-    
-    return train_loader, test_loader
+    test_dataset = [X_test, y_test]
+    return train_loader, test_dataset, nb_classes

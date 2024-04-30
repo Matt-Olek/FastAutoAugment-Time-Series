@@ -29,6 +29,26 @@ The transformations used are as follows:
 
 # Usage
 
+### Prepare the environment
+> I personally recommend using [uv](https://github.com/astral-sh/uv) as package manager. You can install it using the following command:
+```bash
+pip install uv
+```
+You can then create the environment and install the dependencies using the following commands:
+
+```bash
+uv venv
+```
+```bash
+. venv/bin/activate
+```
+
+```bash
+uv pip install -r requirements.txt
+```
+
+Finally, you can run the code using the following command:
+
 ```python
 python FastAA/main.py
 ```

@@ -1,5 +1,4 @@
 # Defines the training process for the baseline and augmented models
-
 from loader import getDataLoader
 from model import Classifier_RESNET
 from config import device, is_WandB
@@ -11,10 +10,13 @@ import wandb
 from tqdm import tqdm
 import torch
 
-def train_baseline(dataset_name, nb_classes,epochs,batch_size,lr=0.001, weight_decay=0.0001):
+def train_baseline(dataset_name, epochs,batch_size,lr=0.001, weight_decay=0.0001,patience=100):
     '''
     Defines the training process for the baseline and augmented models
     '''
+    # Load the dataset
+    train_loader, test_dataset,nb_classes = getDataLoader(dataset_name, batch_size)
+    
     # WandB - Initialize a new run
     if is_WandB:
         wandb.init(
@@ -27,24 +29,21 @@ def train_baseline(dataset_name, nb_classes,epochs,batch_size,lr=0.001, weight_d
                     'weight_decay': weight_decay}
             )
     
-    # Load the dataset
-    train_loader, test_loader = getDataLoader(dataset_name, batch_size)
-    
     # Define the model
     model = Classifier_RESNET(input_shape=train_loader.dataset[0][0].shape, nb_classes=nb_classes).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr, weight_decay=weight_decay)
-    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=10)
+    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=patience)
     
     # Training
     best_acc = 0
     for epoch in tqdm(range(epochs)):
         epoch_avg_loss, epoch_accuracy = train_epoch(train_loader, model, criterion, optimizer, scheduler, epoch)
-        val_log = validate(test_loader, model, criterion)
+        val_log = validate(test_dataset, model, criterion)
 
         # WandB - Log metrics
         if is_WandB:
-            wandb.log({'epoch': epoch, 'train_loss': epoch_avg_loss, 'train_accuracy': epoch_accuracy, 'val_loss': val_log['loss'], 'val_accuracy': val_log['acc']})
+            wandb.log({'epoch': epoch, 'train_loss': epoch_avg_loss, 'train_accuracy': epoch_accuracy, 'val_loss': val_log['loss'], 'val_accuracy': val_log['acc'], 'val_f1': val_log['f1']})
         
         # Save the best model
         if val_log['acc'] > best_acc:
