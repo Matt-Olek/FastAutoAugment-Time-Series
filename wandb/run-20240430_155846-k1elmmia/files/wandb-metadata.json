@@ -1,0 +1,45 @@
+{
+    "os": "Windows-11-10.0.22631-SP0",
+    "python": "3.12.3",
+    "heartbeatAt": "2024-04-30T13:58:47.181787",
+    "startedAt": "2024-04-30T13:58:46.075752",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "C:\\Users\\utilisateur\\Documents\\GitHub\\FastAutoAugment-Time-Series\\FastAA\\main.py",
+    "codePathLocal": "FastAA\\main.py",
+    "codePath": "FastAA\\main.py",
+    "git": {
+        "remote": "https://github.com/Matt-Olek/FastAutoAugment-Time-Series.git",
+        "commit": "fd481bb8f350fec22a008c311942fc4f789ee201"
+    },
+    "email": "135612116+Matt-Olek@users.noreply.github.com",
+    "root": "C:/Users/utilisateur/Documents/GitHub/FastAutoAugment-Time-Series",
+    "host": "LAPTOP-263MH6VU",
+    "username": "utilisateur",
+    "executable": "C:\\Users\\utilisateur\\Documents\\GitHub\\FastAutoAugment-Time-Series\\.venv\\Scripts\\python.exe",
+    "cpu_count": 14,
+    "cpu_count_logical": 20,
+    "cpu_freq": {
+        "current": 2300.0,
+        "min": 0.0,
+        "max": 2300.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2300.0,
+            "min": 0.0,
+            "max": 2300.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 475.5354652404785,
+            "used": 312.6983108520508
+        }
+    },
+    "memory": {
+        "total": 15.697860717773438
+    }
+}

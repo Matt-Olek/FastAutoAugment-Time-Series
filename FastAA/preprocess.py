@@ -11,5 +11,8 @@ def preprocess_function(dataset_name):
         def f(x):
             return x-1
         return f
+    elif dataset_name == 'Worms':
+        def f(x):
+            return x-1
     else :
         return None

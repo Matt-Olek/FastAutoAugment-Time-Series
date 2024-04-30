@@ -1,9 +1,9 @@
 # Implementation of hyperparameter selection and base commands for Fast AutoAugment
 
-from FastAA.train import train_baseline
+from train import train_baseline
 
 if __name__ == "__main__":
-    dataset_name = 'ECG5000'
+    dataset_name = 'Worms'
     nb_classes = 5
     
     # Hyperparameters - FastAA
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     
     # Hyperparameters - Baseline and comparison
     
-    epochs = 100            # Number of epochs
+    epochs = 500            # Number of epochs
     batch_size = 64         # Batch size
     comparison = True       # Compare FastAA with no augmentation
     
