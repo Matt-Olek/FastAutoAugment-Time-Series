@@ -34,7 +34,7 @@ def train_baseline(dataset_name, nb_classes,epochs,batch_size,lr=0.001, weight_d
     model = Classifier_RESNET(input_shape=train_loader.dataset[0][0].shape, nb_classes=nb_classes).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr, weight_decay=weight_decay)
-    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=10)
+    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=100)
     
     # Training
     best_acc = 0
