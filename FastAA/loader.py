@@ -27,17 +27,9 @@ def getDataLoader(dataset_name, batch_size):
         test_data[0] = test_data[0] - min_class
         
     print('Number of classes: {}'.format(nb_classes))
-    
-    # Preprocess the data
-    function = preprocess_function(dataset_name)
-    
-    # if function is not None:
-    #     f = lambda x: function(x)
-    #     train_data[0] = train_data[0].apply(lambda x: f(x))
-    #     test_data[0] = test_data[0].apply(lambda x: f(x))
         
     train_np = train_data.to_numpy()
-    test_np = train_data.to_numpy()   
+    test_np = test_data.to_numpy()
     train = train_np.reshape(np.shape(train_np)[0], 1, np.shape(train_np)[1])
     test = test_np.reshape(np.shape(test_np)[0], 1, np.shape(test_np)[1])
     
