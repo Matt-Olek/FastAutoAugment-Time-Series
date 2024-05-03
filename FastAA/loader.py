@@ -1,11 +1,13 @@
-# Defines the data loader for the baseline and augmented models using the UCRArchive_2018 dataset
 import torch
 import numpy as np
 import pandas as pd
 
 from preprocess import preprocess_function
 
-def getDataLoader(dataset_name, batch_size):
+def getDataLoader(dataset_name, batch_size, transform=None):
+    '''
+    Defines the data loader for the baseline and augmented models using the UCRArchive_2018 dataset
+    '''
     
     # Load the dataset
     path = 'data/UCRArchive_2018/{}/'.format(dataset_name)
@@ -37,6 +39,14 @@ def getDataLoader(dataset_name, batch_size):
     y_test = test[:, 0, 0]
     X_train = train[:, 0, 1:]
     X_test = test[:, 0, 1:]
+    if not transform==None:
+        nb_transformations = len(transform)
+        for i in range(nb_transformations):
+            pass
+            
+            
+            
+        
     # To tensor
     X_train = torch.tensor(X_train, dtype=torch.float32).unsqueeze(1)
     X_test = torch.tensor(X_test, dtype=torch.float32).unsqueeze(1) 
