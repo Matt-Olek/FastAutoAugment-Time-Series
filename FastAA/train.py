@@ -130,15 +130,15 @@ def train_fastAA(dataset_name, K, N, T, B, epochs, batch_size, lr=0.001, weight_
         child_batch_size = int(batch_size/K)
         train_loader = torch.utils.data.DataLoader(train_folds[fold], batch_size=child_batch_size, shuffle=True)
         best_acc = 0
-        for epoch in tqdm(range(epochs)):
-            epoch_avg_loss, epoch_accuracy = train_epoch(train_loader, model, criterion, optimizer, scheduler, epoch)
-            val_log = validate(test_dataset, model, criterion)
-            scheduler.step(val_log['loss'])
+        # for epoch in tqdm(range(epochs)):
+        #     epoch_avg_loss, epoch_accuracy = train_epoch(train_loader, model, criterion, optimizer, scheduler, epoch)
+        #     val_log = validate(test_dataset, model, criterion)
+        #     scheduler.step(val_log['loss'])
             
-            # Save the best model
-            if val_log['acc'] > best_acc:
-                best_acc = val_log['acc']
-                torch.save(model.state_dict(), 'best_model_fold{}.pth'.format(fold))
+        #     # Save the best model
+        #     if val_log['acc'] > best_acc:
+        #         best_acc = val_log['acc']
+        #         torch.save(model.state_dict(), 'best_model_fold{}.pth'.format(fold))
         
         # Load the best model
         model.load_state_dict(torch.load('best_model_fold{}.pth'.format(fold)))
