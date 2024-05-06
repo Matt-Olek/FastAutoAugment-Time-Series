@@ -28,19 +28,19 @@ def sample_policy(p, lambda_):
     policy.magnitude = lambda_
     return policy
 
-def apply_policy_to_dataset(dataset, policies, space_shape):
-    num_policies = len(policies)/3
-    
+def apply_policy_to_dataset(dataset, policy, policy_idx, space_shape):  
     output = []
-    for i in range(space_shape[0]):
+    i=policy_idx
+    for data in dataset:
+        X, y = data
         for j in range(space_shape[1]):
-            policy = policies['policy_%d_%d' % (i, j)]
-            prob = policies['prob_%d_%d' % (i, j)]
-            level = policies['level_%d_%d' % (i, j)]
+            policy_id = policy['policy_%d_%d' % (i, j)]
+            prob = policy['prob_%d_%d' % (i, j)]
+            level = policy['level_%d_%d' % (i, j)]
             policy_object = sample_policy(prob, level)
-            for data in dataset:
-                X, y = apply_policy(data, policy_object)
-                output.append((torch.tensor(X, dtype=torch.float32).unsqueeze(0), y))
+            policy_object.transformation_name = list(possible_transformations.keys())[policy_id]
+            X, y = apply_policy((X, y), policy_object)
+    output.append((X.clone().detach(), y))
     return output
 
 def apply_policy(data, policy):
@@ -54,7 +54,27 @@ def apply_policy(data, policy):
     else :
         output = X
         output = output.squeeze(0)
+    output = output.unsqueeze(0)
     return output, y
+
+def apply_multiple_policies(X_train, policies, num_opt):
+    final_X_train = []
+    num_policies = len(policies)//(3*num_opt)
+    for data in X_train:
+        data = torch.tensor(data, dtype=torch.float32).unsqueeze(0)
+        for i in range(num_policies):
+            for j in range(num_opt):
+                policy_name = 'policy_%d_%d' % (i, j)
+                policy_prob = 'prob_%d_%d' % (i, j)
+                policy_level = 'level_%d_%d' % (i, j)
+                policy = Policy()
+                policy.transformation_name = list(possible_transformations.keys())[policies[policy_name]]
+                policy.probability = policies[policy_prob]
+                policy.magnitude = policies[policy_level]
+                data,y = apply_policy((data, None), policy)
+        final_X_train.append(data)
+    return torch.stack(final_X_train).squeeze(1).numpy()
+    
         
 
 # ------------------- Transformations ------------------- #

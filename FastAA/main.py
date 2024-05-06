@@ -4,13 +4,13 @@ from train import train_baseline, train_fastAA
 from config import device
 
 if __name__ == "__main__":
-    dataset_name = 'TwoLeadECG'
+    dataset_name = 'DistalPhalanxTW'
     
     # Hyperparameters - FastAA
     
     K=5                     # Number of folds
     N=10                    # Number of best policies
-    T=2                     # Number of iterations
+    T=1                     # Number of iterations
     B=200                   # Number of samples per fold
     
     # Hyperparameters - Baseline and comparison
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         print('Comparing FastAA results with baseline results')         # And random augmentation soon
         print('Training the baseline model on the {} dataset ...'.format(dataset_name))
         print('\n#################################################\n')
-        # train_baseline(dataset_name, epochs, batch_size)
+        train_baseline(dataset_name, epochs, batch_size)
         print('\n#################################################\n')
         print('Baseline training completed')
         print('Training FastAA on the {} dataset ...'.format(dataset_name))

@@ -1,10 +1,9 @@
 import torch
 import numpy as np
 import pandas as pd
+from transformations import apply_multiple_policies
 
-from preprocess import preprocess_function
-
-def getDataLoader(dataset_name, batch_size, transform=None):
+def getDataLoader(dataset_name, batch_size, transform=None,num_opt=2):
     '''
     Defines the data loader for the baseline and augmented models using the UCRArchive_2018 dataset
     '''
@@ -40,9 +39,16 @@ def getDataLoader(dataset_name, batch_size, transform=None):
     X_train = train[:, 0, 1:]
     X_test = test[:, 0, 1:]
     if not transform==None:
-        nb_transformations = len(transform)
-        for i in range(nb_transformations):
-            pass
+        nb_batch_of_transform = len(transform)
+        X_train_transformed = []
+        print('Number of batch of transformations: {}'.format(nb_batch_of_transform))
+        for batch in range(nb_batch_of_transform):
+            nb_transforms = len(transform[batch])//(3*num_opt)
+            print('Number of transformations in batch {}: {}'.format(batch, nb_transforms))
+            X_train_transformed.append(apply_multiple_policies(X_train, transform[batch], num_opt))
+        X_train = np.concatenate(X_train_transformed, axis=0)
+        y_train = np.concatenate([y_train]*nb_batch_of_transform, axis=0)
+        
             
             
             

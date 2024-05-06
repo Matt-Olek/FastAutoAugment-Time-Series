@@ -4,26 +4,45 @@ import numpy as np
 from torch import nn
 import torch
 
-num_opt = 2
 K=5
 K_ratio = 0.2   
 N=10
 
-def bayesian_optimization(model,train_fold, N, T, B, criterion,sub_policies=1):
+def bayesian_optimization(model,train_fold, N, T, B, criterion,num_opt=2):
+    print('Bayesian optimization on fold')
     model.eval()
     space, space_shape = get_policy_space(B, num_opt)
-    final_policy_set = []
-    for _ in range(T):
-        for fold in range(K):
-            name = "search_fold_%d" % fold            
-            trials = Trials()
-            best = fmin(lambda policies: eval_tta(model,train_fold, policies, space_shape),
-                        space=space, algo=tpe.suggest, max_evals=4, trials=trials)
-            results = sorted(trials.results, key=lambda x: x['loss'])
-            print(results)
-            for result in results[:N]:
-                final_policy_set.append(result['policy'])
-    return final_policy_set
+    intermediate_policy_set = []
+    for _ in range(1):       # Replace with T  
+        trials = Trials()
+        best = fmin(lambda policies: eval_tta(model,train_fold, policies, space_shape),
+                    space=space, algo=tpe.suggest, max_evals=1, trials=trials)
+        results = sorted(trials.results, key=lambda x: x['loss'])
+        best_trial = results[0]
+        intermediate_policy_set.append(best_trial)
+    policies_low_losses = {}
+    for element in intermediate_policy_set:
+        losses = element['losses']
+        N_lowest_losses_indices = np.argsort(losses)[:N]
+        for i in range(N):
+            k = N_lowest_losses_indices[i]
+            for j in range(num_opt):
+                policy_name = 'policy_%d_%d' % (k, j)
+                policy_prob = 'prob_%d_%d' % (k, j)
+                policy_level = 'level_%d_%d' % (k, j)
+                new_policy_name = 'policy_%d_%d' % (i, j)
+                new_prob_name = 'prob_%d_%d' % (i, j)
+                new_level_name = 'level_%d_%d' % (i, j)
+                name_value = element['policy'][policy_name]
+                prob_value = element['policy'][policy_prob]
+                level_value = element['policy'][policy_level]
+                policies_low_losses[new_policy_name] = name_value
+                policies_low_losses[new_prob_name] = prob_value
+                policies_low_losses[new_level_name] = level_value
+                
+    print('Bayesian optimization completed')
+    print('Found', len(policies_low_losses)//(3*num_opt), 'best policies')
+    return policies_low_losses
                 
 def get_policy_space(num_policy, num_op):
     space = {}
@@ -37,9 +56,23 @@ def get_policy_space(num_policy, num_op):
     return space, space_shape
 
 def eval_tta(model, train_fold, augs, space_shape):
+    # criterion = nn.CrossEntropyLoss()
+    # augmented_fold = apply_policy_to_dataset(train_fold, augs, space_shape)
+    # X = torch.stack([x[0] for x in augmented_fold])
+    # y = torch.stack([x[1] for x in augmented_fold]).float()
+    # loss_on_augmented = criterion(model(X), y)
+    # return {'loss': loss_on_augmented.item(), 'policy': augs, 'status': 'ok'}
+    model.eval()
     criterion = nn.CrossEntropyLoss()
-    augmented_fold = apply_policy_to_dataset(train_fold, augs, space_shape)
-    X = torch.stack([x[0] for x in augmented_fold])
-    y = torch.stack([x[1] for x in augmented_fold]).float()
-    loss_on_augmented = criterion(model(X), y)
-    return {'loss': loss_on_augmented.item(), 'policy': augs, 'status': 'ok'}
+    losses = []
+    for i in range(space_shape[0]):
+        sub_augs_keys = ['policy_%d_%d' % (i, j) for j in range(space_shape[1])] + ['prob_%d_%d' % (i, j) for j in range(space_shape[1])] + ['level_%d_%d' % (i, j) for j in range(space_shape[1])]
+        augmented_fold = apply_policy_to_dataset(train_fold, {key: augs[key] for key in sub_augs_keys}, policy_idx=i, space_shape=space_shape)
+        X = torch.stack([x[0] for x in augmented_fold])
+        y = torch.stack([x[1] for x in augmented_fold]).float()
+        loss_on_augmented = criterion(model(X), y)
+        losses.append(loss_on_augmented.item())
+    return {'loss': np.mean(losses), 'policy': augs, 'status': 'ok', 'losses': losses}
+        
+    
+        
