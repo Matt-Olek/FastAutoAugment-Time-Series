@@ -6,7 +6,8 @@ possible_transformations = {
     'Crop' : lambda series, magnitude: crop(series, magnitude),
     'Drift' : lambda series, magnitude: drift(series, magnitude),
     'AddNoise' : lambda series, magnitude: add_noise(series, magnitude),
-    'Reverse' : lambda series, magnitude: reverse(series, magnitude)
+    'Reverse' : lambda series, magnitude: reverse(series, magnitude),
+    'Identity' : lambda series, magnitude: identity(series, magnitude)
 }
 
 
@@ -108,3 +109,6 @@ def reverse(series_XY, magnitude):
     X = series_XY[0]
     Y = series_XY[1]
     return Reverse().augment(X, Y)
+
+def identity(series_XY, magnitude):
+    return series_XY
