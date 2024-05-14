@@ -5,29 +5,25 @@ from transformations import apply_multiple_policies
 
 def getDataLoader(dataset_name, batch_size, transform=None,num_opt=2):
     '''
-    Defines the data loader for the baseline and augmented models using the UCRArchive_2018 dataset
+    Defines the data loader for the baseline and augmented models using the UCRArchive_2018 dataset. 
+    Will not work for other archives architectures.
     '''
-    
-    # Load the dataset
     path = 'data/UCRArchive_2018/{}/'.format(dataset_name)
     
     train_file = path + '{}_TRAIN.tsv'.format(dataset_name)
     test_file = path + '{}_TEST.tsv'.format(dataset_name)
     
-    # Open the files
     train_data = pd.read_csv(train_file, sep='\t', header=None)
     test_data = pd.read_csv(test_file, sep='\t', header=None)
     
-    # Get the number of classes
     nb_classes = len(train_data[0].unique())
     min_class = train_data[0].min()
     
-    # Gets the classes from 0 to nb_classes
-    if min_class != 0:
+    if min_class != 0:                                  # Re-index classes
         train_data[0] = train_data[0] - min_class
         test_data[0] = test_data[0] - min_class
         
-    print('Number of classes: {}'.format(nb_classes))
+    print('Number of detected classes : {}'.format(nb_classes))
         
     train_np = train_data.to_numpy()
     test_np = test_data.to_numpy()
@@ -38,21 +34,16 @@ def getDataLoader(dataset_name, batch_size, transform=None,num_opt=2):
     y_test = test[:, 0, 0]
     X_train = train[:, 0, 1:]
     X_test = test[:, 0, 1:]
-    if not transform==None:
+    
+    if not transform==None:                             # Apply transformations to the training set
         nb_batch_of_transform = len(transform)
-        X_train_transformed = []
-        print('Number of batch of transformations: {}'.format(nb_batch_of_transform))
+        X_train_transformed = [torch.tensor(X_train, dtype=torch.float32).numpy()]
         for batch in range(nb_batch_of_transform):
             nb_transforms = len(transform[batch])//(3*num_opt)
-            print('Number of transformations in batch {}: {}'.format(batch, nb_transforms))
             X_train_transformed.append(apply_multiple_policies(X_train, transform[batch], num_opt))
         X_train = np.concatenate(X_train_transformed, axis=0)
-        y_train = np.concatenate([y_train]*nb_batch_of_transform, axis=0)
-        
-            
-            
-            
-        
+        y_train = np.concatenate([y_train]*(nb_batch_of_transform+1), axis=0)
+         
     # To tensor
     X_train = torch.tensor(X_train, dtype=torch.float32).unsqueeze(1)
     X_test = torch.tensor(X_test, dtype=torch.float32).unsqueeze(1) 
@@ -69,4 +60,5 @@ def getDataLoader(dataset_name, batch_size, transform=None,num_opt=2):
     
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_dataset = [X_test, y_test]
+    
     return train_loader, test_dataset, nb_classes
