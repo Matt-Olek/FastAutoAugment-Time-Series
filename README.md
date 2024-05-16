@@ -11,7 +11,7 @@ The dataset used is the [UCR Time Series Classification Archive](https://www.cs.
 
 The architecture of the augmented model is as follows:
 
-![FastAA](FastAA.excalidraw.png)
+![FastAA](media/FastAA.excalidraw.png)
 
 ## ⚂ Transformations
 
@@ -30,7 +30,7 @@ The transformations used are as follows:
 
 # ⛓ Usage
 
-### Prepare the environment
+## Prepare the environment
 > I personally recommend using [uv](https://github.com/astral-sh/uv) as package manager. You can install it using the following command:
 ```bash
 pip install uv
@@ -48,7 +48,7 @@ uv venv
 uv pip install -r requirements.txt
 ```
 
-### Configure your cuda device and WnB link in the config file 'FastAA/config.py'
+## Configure your cuda device and WnB link in the config file 'FastAA/config.py'
 
 Set the device to 'cuda' or 'cpu' if you want to override automatic device detection. 
 Set *is_wandb* to True if you want to log the results to WnB. You may have to log in to WnB using the following command:
@@ -56,12 +56,12 @@ Set *is_wandb* to True if you want to log the results to WnB. You may have to lo
 wandb login
 ```
 
-### Basic run of augmentation on single dataset
+## Basic run of augmentation on single dataset
 
 You can run FastAA augmentation comparison using the following command:
 
 ```python
-python FastAA/main.py --dataset=ECG200 --compare --runs=5
+python FastAA/main.py --dataset=ECG5000 --compare --runs=5
 ```
 
 Other parameters are detailed in the help:
@@ -70,7 +70,7 @@ Other parameters are detailed in the help:
 python FastAA/main.py --help
 ```
 
-### Run augmentation on all datasets
+## Run augmentation on all datasets
 
 You can run FastAA augmentation on all datasets using the following command:
 
@@ -85,7 +85,7 @@ nohup python FastAA/run_full_datasets_exploration.py &
 
 The results will be saved in the data/logs folder as soon as they are computed.
 
-### Plot the metrics comparison between FastAA and baseline
+## Plot the metrics comparison between FastAA and baseline
 
 Plot the metrics comparison with the command:
 
@@ -93,6 +93,10 @@ Plot the metrics comparison with the command:
 python results/plot_result_table.py 
 ```
 
-And access the last computed results : 
+And access the last computed results in **results/metrics_comparison.png** :  
 
 ![Results](results/metrics_comparison.png)
+
+> We can see that significant improvements are made on some datasets, while others are not improved, or even worsened. Therefore, we propose to study the impact of the transformations on the datasets and try to understand why some datasets are improved and others are not.
+
+# 📈 Results

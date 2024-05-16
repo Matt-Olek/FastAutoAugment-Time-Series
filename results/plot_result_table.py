@@ -13,7 +13,7 @@ bar_width = 0.35
 index = np.arange(len(grouped))
 
 # Initialize the plot
-fig, axs = plt.subplots(3, 1, figsize=(15, 15))
+fig, axs = plt.subplots(3, 1, figsize=(35, 15))
 
 metrics = ['accuracy', 'f1', 'recall']
 baseline_means = {'accuracy': [], 'f1': [], 'recall': []}

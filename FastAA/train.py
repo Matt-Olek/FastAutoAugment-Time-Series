@@ -1,10 +1,12 @@
 # Defines the training process for the baseline and augmented models
 import math
+import numpy as np
 import os
 import pandas as pd
 import torch
 from tqdm import tqdm
 from bayesian_optimization import bayesian_optimization
+from sklearn.model_selection import StratifiedKFold
 from loader import getDataLoader
 from model import Classifier_RESNET
 from config import device, is_WandB
@@ -25,7 +27,7 @@ def train_baseline(dataset_name, epochs,batch_size, runs):
     train_loader, test_dataset,nb_classes = getDataLoader(dataset_name, batch_size)
     
     new_batch_size = int(len(train_loader.dataset)*0.1)
-    if new_batch_size > batch_size or True:
+    if new_batch_size > batch_size:
         batch_size = new_batch_size
         print('Batch size updated to', batch_size)
         train_loader, test_dataset, nb_classes = getDataLoader(dataset_name, batch_size)
@@ -72,7 +74,10 @@ def train_baseline(dataset_name, epochs,batch_size, runs):
         'f1_mean': [val_f1_mean],
         'f1_std': [val_f1_std],
         'recall_mean': [val_recall_mean],
-        'recall_std': [val_recall_std]
+        'recall_std': [val_recall_std],
+        'nb_classes': nb_classes,
+        'train_size': len(train_loader.dataset),
+        'test_size': len(test_dataset)
     })
     
     # Check if the file already exists
@@ -164,8 +169,8 @@ def train_fastAA(dataset_name, epochs, batch_size, K, N, T, B, runs, lr=0.001, w
     # Load the dataset
     train_loader, test_dataset,nb_classes = getDataLoader(dataset_name, batch_size=None)
     
-    new_batch_size = int(len(train_loader.dataset)*0.1)
-    if new_batch_size > batch_size or True:
+    new_batch_size = int(len(train_loader.dataset)*0.1) 
+    if new_batch_size > batch_size :
         batch_size = new_batch_size
         print('Batch size updated to', batch_size)
         
@@ -211,7 +216,10 @@ def train_fastAA(dataset_name, epochs, batch_size, K, N, T, B, runs, lr=0.001, w
         'f1_mean': [val_f1_mean],
         'f1_std': [val_f1_std],
         'recall_mean': [val_recall_mean],
-        'recall_std': [val_recall_std]
+        'recall_std': [val_recall_std],
+        'nb_classes': nb_classes,
+        'train_size': len(train_loader.dataset),
+        'test_size': len(test_dataset)
     })
     
     results.to_csv('data/logs/results.csv', mode='a', header=False, index=False)
@@ -224,11 +232,14 @@ def train_fastAA_run(dataset_name, epochs, batch_size, K, N, T, B, lr=0.001, wei
     
     # ----------------------------------- K-Fold Bagging ----------------------------------- #
     
-    fold_size = math.ceil(len(train_loader.dataset) / K)
-    lengths = [fold_size] * K
-    if sum(lengths) > len(train_loader.dataset):
-        lengths[-1] = len(train_loader.dataset) - sum(lengths[:-1])
-    train_folds = torch.utils.data.random_split(train_loader.dataset, lengths)
+    X,y = zip(*train_loader.dataset)
+    y = np.argmax(y, axis=1)
+    
+    kf = StratifiedKFold(n_splits=K, shuffle=True)
+    
+    train_folds = []
+    for fold, (train_index, _) in enumerate(kf.split(X, y)):
+        train_folds.append(torch.utils.data.Subset(train_loader.dataset, train_index))
     
     # ------------------------------------ Training Child Models and Bayesian Optimization ------------------------------------ #
     
@@ -247,9 +258,11 @@ def train_fastAA_run(dataset_name, epochs, batch_size, K, N, T, B, lr=0.001, wei
         train_fold, bayes_fold = torch.utils.data.random_split(train_folds[fold], [int(fold_len * 0.5), fold_len - int((fold_len * 0.5))])
         
         # Training
-        child_batch_size = int(batch_size / K)
-        train_loader = torch.utils.data.DataLoader(train_fold, batch_size=1, shuffle=True)
+        child_batch_size = int(batch_size/(K))
+        child_batch_size = max(child_batch_size, 6)
+        train_loader = torch.utils.data.DataLoader(train_fold, batch_size=child_batch_size, shuffle=True)
         best_acc = 0
+        model.train()
         for epoch in tqdm(range(epochs)):
             epoch_avg_loss, epoch_accuracy = train_epoch(train_loader, model, criterion, optimizer, scheduler, epoch)
             val_log = validate(test_dataset, model, criterion)
@@ -266,7 +279,7 @@ def train_fastAA_run(dataset_name, epochs, batch_size, K, N, T, B, lr=0.001, wei
         # Perform bayesian optimization using the other part of the fold
         T_star.append(bayesian_optimization(model, bayes_fold, N, T, B, criterion, num_opt=2))
     
-    print("Found", len(T_star), "best policies")
+    print(len(T_star), "total policies found")
     print(T_star)
     
     # ------------------------------------ Validation Initialization ------------------------------------ #
@@ -287,7 +300,7 @@ def train_fastAA_run(dataset_name, epochs, batch_size, K, N, T, B, lr=0.001, wei
                     'B': B}
             )
     
-    augmented_batch_size = batch_size * (1 + len(T_star))
+    augmented_batch_size = batch_size #* (1 + len(T_star))
     augmented_train_loader, _, _ = getDataLoader(dataset_name, augmented_batch_size, transform=T_star, num_opt=2)
     
     model_augmented = Classifier_RESNET(input_shape=augmented_train_loader.dataset[0][0].shape, nb_classes=nb_classes).to(device)
