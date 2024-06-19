@@ -21,7 +21,7 @@ def parse_arguments():
         "--T", type=int, default=5, help="Number of iterations (default: 5)"
     )
     parser.add_argument(                                                                        # Number of samples per fold    
-        "--B", type=int, default=50, help="Number of samples per fold (default: 50)"
+        "--B", type=int, default=100, help="Number of samples per fold (default: 100)"
     )
     parser.add_argument(                                                                        # Number of epochs for model training
         "--epochs", type=int, default=200, help="Number of epochs (default: 200)"

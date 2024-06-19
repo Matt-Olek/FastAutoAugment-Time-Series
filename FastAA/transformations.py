@@ -1,12 +1,16 @@
 import numpy as np
 import torch
-from tsaug import Crop, Drift, Reverse, AddNoise, Resize  
+from tsaug import Crop, Drift, Reverse, AddNoise, Resize, Convolve, Pool, Quantize, TimeWarp
 
 possible_transformations = {
     'Crop' : lambda series, magnitude: crop(series, magnitude),
     'Drift' : lambda series, magnitude: drift(series, magnitude),
     'AddNoise' : lambda series, magnitude: add_noise(series, magnitude),
     'Reverse' : lambda series, magnitude: reverse(series, magnitude),
+    'Convolve' : lambda series, magnitude: convolve(series, magnitude),
+    'Pool' : lambda series, magnitude: pool(series, magnitude),
+    'Quantize' : lambda series, magnitude: quantize(series, magnitude),
+    'TimeWarp' : lambda series, magnitude: time_warp(series, magnitude),
     'Identity' : lambda series, magnitude: identity(series, magnitude)
 }
 
@@ -109,6 +113,38 @@ def reverse(series_XY, magnitude):
     X = series_XY[0]
     Y = series_XY[1]
     return Reverse().augment(X, Y)
+
+def convolve(series_XY, magnitude):
+    max_scale = len(series_XY[0])
+    min_scale = 1
+    magnitude = round(min_scale + magnitude * (max_scale - min_scale))
+    X = series_XY[0]    
+    Y = series_XY[1]
+    return Convolve(size=magnitude).augment(X, Y)
+
+def pool(series_XY, magnitude):
+    max_scale = 10
+    min_scale = 1
+    magnitude = round(min_scale + magnitude * (max_scale - min_scale))
+    X = series_XY[0]
+    Y = series_XY[1]
+    return Pool(size=magnitude).augment(X, Y)
+    
+def quantize(series_XY, magnitude):
+    max_scale = max(series_XY[1]) - min(series_XY[1]) + 1
+    min_scale = 1
+    magnitude = round(min_scale + magnitude * (max_scale - min_scale))
+    X = series_XY[0]
+    Y = series_XY[1]
+    return Quantize(n_levels=magnitude).augment(X, Y)
+    
+def time_warp(series_XY, magnitude):
+    max_scale = 10
+    min_scale = 1
+    magnitude = round(min_scale + magnitude * (max_scale - min_scale))
+    X = series_XY[0]
+    Y = series_XY[1]
+    return TimeWarp(n_speed_change=magnitude).augment(X, Y)
 
 def identity(series_XY, magnitude):
     return series_XY

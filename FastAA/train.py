@@ -26,11 +26,14 @@ def train_baseline(dataset_name, epochs,batch_size, runs):
     # Load the dataset
     train_loader, test_dataset,nb_classes = getDataLoader(dataset_name, batch_size)
     
-    new_batch_size = int(len(train_loader.dataset)*0.1)
+    new_batch_size = int(len(train_loader.dataset)*0.01)
     if new_batch_size > batch_size:
-        batch_size = new_batch_size
-        print('Batch size updated to', batch_size)
-        train_loader, test_dataset, nb_classes = getDataLoader(dataset_name, batch_size)
+        if new_batch_size > 128:
+            new_batch_size = 128
+        else:
+            batch_size = new_batch_size
+            print('Batch size updated to', batch_size)
+            train_loader, test_dataset, nb_classes = getDataLoader(dataset_name, batch_size)
     
     # Accuracy, F1, Precision, Recall
     val_loss = []
@@ -77,7 +80,7 @@ def train_baseline(dataset_name, epochs,batch_size, runs):
         'recall_std': [val_recall_std],
         'nb_classes': nb_classes,
         'train_size': len(train_loader.dataset),
-        'test_size': len(test_dataset)
+        'test_size': len(test_dataset[0])
     })
     
     # Check if the file already exists
@@ -113,7 +116,7 @@ def train_baseline_run(train_loader, test_dataset, dataset_name, nb_classes, epo
     
     # Define the model
     model = Classifier_RESNET(input_shape=train_loader.dataset[0][0].shape, nb_classes=nb_classes).to(device)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr, weight_decay=weight_decay)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=patience)
     
@@ -165,7 +168,7 @@ def train_epoch(train_loader, model, criterion, optimizer, scheduler,epoch_id):
     
 # ------------------------------------ FastAA Training ------------------------------------ #
             
-def train_fastAA(dataset_name, epochs, batch_size, K, N, T, B, runs, lr=0.001, weight_decay=0.0001, patience=100):
+def train_fastAA(dataset_name, epochs, batch_size, K, N, T, B, runs, lr=0.0001, weight_decay=0.0001, patience=100):
     # Load the dataset
     train_loader, test_dataset,nb_classes = getDataLoader(dataset_name, batch_size=None)
     
@@ -219,7 +222,7 @@ def train_fastAA(dataset_name, epochs, batch_size, K, N, T, B, runs, lr=0.001, w
         'recall_std': [val_recall_std],
         'nb_classes': nb_classes,
         'train_size': len(train_loader.dataset),
-        'test_size': len(test_dataset)
+        'test_size': len(test_dataset[0])
     })
     
     results.to_csv('data/logs/results.csv', mode='a', header=False, index=False)
@@ -259,7 +262,7 @@ def train_fastAA_run(dataset_name, epochs, batch_size, K, N, T, B, lr=0.001, wei
         
         # Training
         child_batch_size = int(batch_size/(K))
-        child_batch_size = max(child_batch_size, 6)
+        child_batch_size = max(8, child_batch_size)
         train_loader = torch.utils.data.DataLoader(train_fold, batch_size=child_batch_size, shuffle=True)
         best_acc = 0
         model.train()

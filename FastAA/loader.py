@@ -19,7 +19,15 @@ def getDataLoader(dataset_name, batch_size, transform=None,num_opt=2):
     nb_classes = len(train_data[0].unique())
     min_class = train_data[0].min()
     
-    if min_class != 0:                                  # Re-index classes
+    if min_class == -1 and nb_classes == 2: 
+        print('Binary classification detected')
+        train_data.loc[train_data[0] == -1, 0] = 0
+        test_data.loc[test_data[0] == -1, 0] = 0
+    
+    min_class = train_data[0].min()
+    if min_class != 0:
+        # Re-index classes
+        print('Re-indexing classes')
         train_data[0] = train_data[0] - min_class
         test_data[0] = test_data[0] - min_class
         

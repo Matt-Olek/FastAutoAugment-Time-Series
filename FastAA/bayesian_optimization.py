@@ -14,7 +14,7 @@ def bayesian_optimization(model, train_fold, N, T, B, criterion, num_opt=2):
     for _ in range(1):
         trials = Trials()
         best = fmin(lambda policies: eval_tta(model, train_fold, policies, space_shape),
-                     space=space, algo=tpe.suggest, max_evals=15, trials=trials)
+                     space=space, algo=tpe.suggest, max_evals=5, trials=trials)
         results = sorted(trials.results, key=lambda x: x['loss'])
         best_trial = results[0]
         intermediate_policy_set.append(best_trial)

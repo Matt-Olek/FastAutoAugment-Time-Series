@@ -61,8 +61,10 @@ for name, group in grouped:
             augmentation_percentage = round(((augmented_mean - baseline_mean) / baseline_mean) * 100, 2)
             if augmentation_percentage > 0:
                 row.append(f'🟢 {augmented_mean} ({augmented_std}) [+{augmentation_percentage}%] ')
-            else :
+            elif augmentation_percentage < 0:
                 row.append(f'🔴 {augmented_mean} ({augmented_std}) [{augmentation_percentage}%] ')
+            else:
+                row.append(f'⚪ {augmented_mean} ({augmented_std}) [{augmentation_percentage}%] ')
         else:
             row.append('N/A')
     
